@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Discord.Net" Version="3.7.2" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
+    <PackageReference Include="MongoDB.Driver" Version="2.17.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Auxiliary">
+      <HintPath>..\..\Auxiliary\Auxiliary\bin\Debug\net6.0\Auxiliary.dll</HintPath>
+    </Reference>
+    <Reference Include="OTAPI">
+      <HintPath>..\..\..\assemblies\TShock-Beta-win-x64-Release\TShock-Beta-win-x64-Release\bin\OTAPI.dll</HintPath>
+    </Reference>
+    <Reference Include="TerrariaServer">
+      <HintPath>..\..\..\assemblies\TShock-Beta-win-x64-Release\TShock-Beta-win-x64-Release\bin\TerrariaServer.dll</HintPath>
+    </Reference>
+    <Reference Include="TShockAPI">
+      <HintPath>..\..\..\assemblies\TShock-Beta-win-x64-Release\TShock-Beta-win-x64-Release\ServerPlugins\TShockAPI.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+	  <Using Include="Discord" />
+	  <Using Include="Discord.WebSocket" />
+	  <Using Include="Discord.Rest" />
+	  <Using Include="Discord.Interactions" />
+  </ItemGroup>
+
+</Project>
