@@ -1,4 +1,6 @@
-﻿using Auxiliary.Events;
+﻿using Auxiliary.Configuration;
+using Auxiliary.Events;
+using Terraqord.Configuration;
 using Terraria;
 using TerrariaApi.Server;
 using TShockAPI.Hooks;
@@ -86,8 +88,33 @@ namespace Terraqord
                 => _leave.Remove(value);
         }
 
+        public static readonly AsyncEvent<Func<Task>> _serverStarted = new();
+        /// <summary>
+        ///     Invokes when the server starts.
+        /// </summary>
+        public static event Func<Task> ServerStarted
+        {
+            add
+                => _serverStarted.Add(value);
+            remove
+                => _serverStarted.Remove(value);
+        }
+
         public override void Initialize()
         {
+            Configuration<TerraqordSettings>.Load("Terraqord");
+
+            GeneralHooks.ReloadEvent += (x) =>
+            {
+                Configuration<TerraqordSettings>.Load("Terraqord");
+                x.Player.SendSuccessMessage("[Terraqord] Reloaded configuration.");
+            };
+
+            ServerApi.Hooks.GamePostInitialize.Register(this, async (_) =>
+            {
+                await _serverStarted.InvokeAsync();
+            });
+
             PlayerHooks.PlayerChat += async (x) =>
             {
                 await _chatSent.InvokeAsync(x);
@@ -96,11 +123,6 @@ namespace Terraqord
             PlayerHooks.PlayerCommand += async (x) =>
             {
                 await _commandSent.InvokeAsync(x);
-            };
-
-            GeneralHooks.ReloadEvent += async (x) =>
-            {
-                await _reload.InvokeAsync(x);
             };
 
             ServerApi.Hooks.NetGreetPlayer.Register(this, async (x) =>

@@ -10,7 +10,7 @@ namespace Terraqord.Entities
 {
     internal class UserHelper
     {
-        private static readonly Collection<UserEntity> _client = new("Users");
+        private static readonly Collection<UserEntity> _client = new("Terraqord");
 
         public static async Task<bool> ModifyAsync(UserEntity user, UpdateDefinition<UserEntity> update)
         {

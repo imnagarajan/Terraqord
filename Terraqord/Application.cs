@@ -1,4 +1,5 @@
 ﻿using Auxiliary;
+using Auxiliary.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Driver;
 using System;
@@ -37,11 +38,18 @@ namespace Terraqord
 
         private async Task RunAsync()
         {
+            var gameClient = _provider.GetRequiredService<GameManager>()
+                .StartAsync();
+
+            await _client.LoginAsync(TokenType.Bot, Configuration<TerraqordSettings>.Settings.BotToken);
+
             _client.Ready += ReadyAsync;
             _client.Log += LogAsync;
 
             _client.InteractionCreated += InteractionReceived;
             _client.MessageReceived += MessageReceived;
+
+            _client.GuildMemberUpdated += GuildMemberUpdated;
 
             await _service.AddModulesAsync(typeof(Application).Assembly, _provider);
 
@@ -53,12 +61,19 @@ namespace Terraqord
             await Task.Delay(Timeout.Infinite);
         }
 
+        private async Task GuildMemberUpdated(Cacheable<SocketGuildUser, ulong> cached, SocketGuildUser member)
+        {
+            var entity = await UserEntity.GetAsync(member.Id);
+
+            entity.AuthorUrl = member.GetDisplayAvatarUrl();
+        }
+
         private async Task ReadyAsync()
         {
             if (!_ready)
                 _ready = true;
 
-            if (Config.Settings.AllowRegistration)
+            if (Configuration<TerraqordSettings>.Settings.AllowRegistration)
                 await _service.RegisterCommandsGloballyAsync();
         }
 
@@ -121,7 +136,7 @@ namespace Terraqord
             if (message is not SocketUserMessage userMessage)
                 return;
 
-            if (Config.Settings.Channel != userMessage.Channel.Id)
+            if (Configuration<TerraqordSettings>.Settings.Channel != userMessage.Channel.Id)
                 return;
 
             if (userMessage.Author is not SocketGuildUser user)
@@ -137,20 +152,15 @@ namespace Terraqord
                 var account = TShock.UserAccounts.GetUserAccountByID(member.TShockId);
                 var group = TShock.Groups.GetGroupByName(account.Group);
 
-                TShock.Utils.Broadcast($"[c/28D2B9:Discord] ⇒ {group.Prefix}{user.Nickname}: {userMessage.CleanContent}", group.R, group.G, group.B);
+                TShock.Utils.Broadcast($"[c/28D2B9:Discord] ⇒ {group.Prefix}{user.DisplayName}: {userMessage.CleanContent}", group.R, group.G, group.B);
             }
             else
-                TShock.Utils.Broadcast($"[c/28D2B9:Discord] ⇒ {user.Nickname}: {userMessage.CleanContent}", Microsoft.Xna.Framework.Color.LightGray);
+                TShock.Utils.Broadcast($"[c/28D2B9:Discord] ⇒ {user.DisplayName}: {userMessage.CleanContent}", Microsoft.Xna.Framework.Color.LightGray);
         }
 
         private static IServiceProvider BuildServiceProvider()
         {
             var collection = new ServiceCollection();
-
-            var conString = Config.Settings.DatabaseToken;
-
-            collection.AddSingleton<MongoClient>(new MongoClient(new MongoUrl(conString)));
-            collection.AddSingleton<DatabaseManager>();
 
             collection.AddSingleton<DiscordSocketConfig>(new DiscordSocketConfig()
             {
@@ -170,7 +180,7 @@ namespace Terraqord
             });
             collection.AddSingleton<InteractionService>();
 
-            collection.AddSingleton<GameHandler>();
+            collection.AddSingleton<GameManager>();
 
             return collection.BuildServiceProvider();
         }

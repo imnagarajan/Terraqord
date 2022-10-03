@@ -149,6 +149,8 @@ namespace Terraqord.Interactions
 
                 await RespondAsync(
                     text: ":white_check_mark: **Succesfully logged out.**");
+
+                return;
             }
 
             await RespondAsync(

@@ -11,10 +11,11 @@ using TShockAPI.Hooks;
 using TShockAPI;
 using Terraqord.Extensions;
 using Terraria;
+using Auxiliary.Configuration;
 
 namespace Terraqord
 {
-    public class GameHandler
+    public class GameManager
     {
         private readonly DateTime?[] _joinedAt;
 
@@ -23,7 +24,7 @@ namespace Terraqord
         private readonly DiscordWebhookClient _logHook;
         private readonly DiscordWebhookClient _messageHook;
 
-        public GameHandler(DiscordSocketClient client)
+        public GameManager(DiscordSocketClient client)
         {
             _joinedAt = new DateTime?[256];
 
@@ -32,8 +33,8 @@ namespace Terraqord
 
             _client = client;
 
-            _messageHook = new DiscordWebhookClient(Config.Settings.ServerHook);
-            _logHook = new DiscordWebhookClient(Config.Settings.LoggingHook);
+            _messageHook = new DiscordWebhookClient(Configuration<TerraqordSettings>.Settings.ServerHook);
+            _logHook = new DiscordWebhookClient(Configuration<TerraqordSettings>.Settings.LoggingHook);
 
             Terraqord.ChatSent += ChatSent;
             Terraqord.CommandSent += CommandSent;
@@ -41,13 +42,31 @@ namespace Terraqord
             Terraqord.Join += Join;
             Terraqord.Leave += Leave;
 
+            Terraqord.ServerStarted += ServerStarted;
+        }
+
+        private async Task ServerStarted()
+        {
             var eb = new EmbedBuilder()
                 .WithTitle("Server started!")
                 .AddField("Map:", Main.worldName)
                 .AddField("Max players:", TShock.Config.Settings.MaxSlots.ToString())
-                .AddField("Difficulty:", $"{Enum.GetName(typeof(GameMode), (GameMode)Main.GameMode)}")
-                .WithFooter($"Join on: {Config.Settings.JoinIp}")
+                .AddField("Difficulty:", $"{Enum.GetName(typeof(GameMode), GameMode.All)}")
+                .WithFooter($"Join on: {Configuration<TerraqordSettings>.Settings.JoinIp}")
                 .WithColor(Color.Blue);
+
+            await _messageHook.SendMessageAsync(
+                embeds: new[] { eb.Build() });
+        }
+
+        public async Task StartAsync()
+        {
+            var eb = new EmbedBuilder()
+                .WithTitle("Server starting!")
+                .WithColor(Color.Blue);
+
+            await _messageHook.SendMessageAsync(
+                embeds: new[] { eb.Build() });
         }
 
         private async Task Leave(LeaveEventArgs arg)
@@ -87,7 +106,7 @@ namespace Terraqord
             {
                 var eb = new EmbedBuilder()
                     .WithTitle($"{player.Name} has joined!")
-                    .AddField("Playercount:", $"{TShock.Utils.GetActivePlayerCount() - 1}/{TShock.Config.Settings.MaxSlots}")
+                    .AddField("Playercount:", $"{TShock.Utils.GetActivePlayerCount()}/{TShock.Config.Settings.MaxSlots}")
                     .WithColor(Color.Green);
 
                 await _messageHook.SendMessageAsync(
@@ -103,8 +122,6 @@ namespace Terraqord
                     username: "Server",
                     embeds: new[] { lb.Build() });
             }
-
-            throw new NotImplementedException();
         }
 
         private async Task CommandSent(PlayerCommandEventArgs arg)
@@ -113,6 +130,7 @@ namespace Terraqord
 
             var lb = new EmbedBuilder()
                 .WithTitle($"{player.Name} has executed a command!")
+                .AddField("Command:", arg.CommandText)
                 .WithColor(Color.Blue);
 
             await _logHook.SendMessageAsync(
@@ -136,7 +154,7 @@ namespace Terraqord
 
                 await _messageHook.SendMessageAsync(
                     text: $"{arg.RawText}".StripTags(), 
-                    username: $"{player.Group.Prefix}{player.Name}",
+                    username: $"{player.Group.Prefix}{player.Name}".StripTags(),
                     avatarUrl: avatarUrl);
             }
         }
