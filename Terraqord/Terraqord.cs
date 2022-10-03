@@ -11,7 +11,7 @@ namespace Terraqord
     public class Terraqord : TerrariaPlugin
     {
         public override string Author
-            => "Armano den Boef (Rozen4334)";
+            => "TBC Developers";
 
         public override string Description
             => "A plugin that manages the connection between Discord and Terraria.";
