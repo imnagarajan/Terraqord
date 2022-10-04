@@ -49,7 +49,7 @@ namespace Terraqord
             _client.InteractionCreated += InteractionReceived;
             _client.MessageReceived += MessageReceived;
 
-            _client.GuildMemberUpdated += GuildMemberUpdated;
+            _client.UserUpdated += UserUpdated;
 
             await _service.AddModulesAsync(typeof(Application).Assembly, _provider);
 
@@ -61,11 +61,14 @@ namespace Terraqord
             await Task.Delay(Timeout.Infinite);
         }
 
-        private async Task GuildMemberUpdated(Cacheable<SocketGuildUser, ulong> cached, SocketGuildUser member)
+        private async Task UserUpdated(SocketUser arg1, SocketUser arg2)
         {
-            var entity = await UserEntity.GetAsync(member.Id);
+            if (arg1.AvatarId != arg2.AvatarId)
+            {
+                var entity = await UserEntity.GetAsync(arg2.Id);
 
-            entity.AuthorUrl = member.GetDisplayAvatarUrl();
+                entity.AuthorUrl = arg2.GetAvatarUrl();
+            }
         }
 
         private async Task ReadyAsync()
