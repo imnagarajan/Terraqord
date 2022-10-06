@@ -171,7 +171,8 @@ namespace Terraqord
                 AlwaysDownloadUsers = true,
                 MessageCacheSize = 100,
                 FormatUsersInBidirectionalUnicode = false,
-                LogLevel = LogSeverity.Info
+                LogLevel = LogSeverity.Warning,
+                LogGatewayIntentWarnings = false
             });
             collection.AddSingleton<DiscordSocketClient>();
 

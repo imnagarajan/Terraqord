@@ -144,6 +144,9 @@ namespace Terraqord
 
             if (!arg.Handled)
             {
+                if (string.IsNullOrEmpty(arg.RawText))
+                    return;
+
                 string? avatarUrl = null;
                 if (player.Account != null)
                 {

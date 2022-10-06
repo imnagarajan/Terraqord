@@ -26,7 +26,7 @@ namespace Terraqord.Extensions
                 Glyph
             }
 
-            private string _raw { get; }
+            private string Raw { get; }
 
             public TagType Type { get; }
 
@@ -37,7 +37,7 @@ namespace Terraqord.Extensions
             public Tag(Match match) 
                 : this(match.Groups["tag"].Value, match.Groups["options"].Value, match.Groups["text"].Value)
             {
-                _raw = match.Value;
+                Raw = match.Value;
             }
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
@@ -72,16 +72,22 @@ namespace Terraqord.Extensions
                         return Text;
 
                     case TagType.Item:
-                        Item item = TShock.Utils.GetItemFromTag(_raw);
-                        string stack = item.stack > 1 ? $"{item.stack} " : "";
-                        if (quotes)
-                            return $"` -{stack}{item.AffixName()}- `";
+                        Item item = TShock.Utils.GetItemFromTag(Raw);
+                        if (item != null)
+                        {
+                            string stack = item.stack > 1 ? $"{item.stack} " : "";
+                            if (quotes)
+                                return $"` -{stack}{item.AffixName()}- `";
+                            else
+                                return $"{stack}{item.AffixName()}, ";
+                        }
                         else
-                            return $"{stack}{item.AffixName()}, ";
+                            return Text;
                 }
             }
 
-            public override string ToString() => _raw;
+            public override string ToString() 
+                => Raw;
         }
 
         public static string StripTags(this string s, bool quoteResult = false)
