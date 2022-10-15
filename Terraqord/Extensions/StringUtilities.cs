@@ -90,44 +90,20 @@ namespace Terraqord.Extensions
                 => Raw;
         }
 
-        public static string StripTags(this string s, bool quoteResult = false)
+        public static string StripTags(this string input, bool quoteResult = false)
         {
-            MatchCollection matches = Tag.Regex.Matches(s);
+            MatchCollection matches = Tag.Regex.Matches(input);
 
-            foreach (Match m in matches)
+            foreach (Match match in matches)
             {
-                Tag tag = new(m);
-                s = s.Replace(m.Value, tag.Parse(quoteResult));
+                Tag tag = new(match);
+
+                input = input.Replace(match.Value, tag.Parse(quoteResult));
             }
 
-            return s;
-        }
+            input = input.Replace("@", "");
 
-        public static (string, string) ParseWebhookUrl(this string webhookUrl)
-        {
-            var url = webhookUrl.Split('/');
-
-            string id = "";
-            string key = "";
-            for (int i = 0; i < url.Length; i++)
-            {
-                if (url[i] == "webhooks")
-                {
-                    id = url[(i + 1)];
-                    key = url[(i + 2)];
-                    break;
-                }
-            }
-
-            return (id, key);
-        }
-
-        public static uint ToUint(this string hex)
-        {
-            if (hex is null)
-                throw new ArgumentNullException(nameof(hex));
-
-            return Convert.ToUInt32(hex, 16);
+            return input;
         }
 
         public static List<string> ParseParameters(this string input)
