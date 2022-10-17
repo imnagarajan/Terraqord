@@ -49,8 +49,6 @@ namespace Terraqord
             _client.InteractionCreated += InteractionReceived;
             _client.MessageReceived += MessageReceived;
 
-            _client.UserUpdated += UserUpdated;
-
             await _service.AddModulesAsync(typeof(Application).Assembly, _provider);
 
             _service.Log += LogAsync;
@@ -59,16 +57,6 @@ namespace Terraqord
             await _client.StartAsync();
 
             await Task.Delay(Timeout.Infinite);
-        }
-
-        private async Task UserUpdated(SocketUser arg1, SocketUser arg2)
-        {
-            if (arg1.AvatarId != arg2.AvatarId)
-            {
-                var entity = await UserEntity.GetAsync(arg2.Id);
-
-                entity.AuthorUrl = arg2.GetAvatarUrl();
-            }
         }
 
         private async Task ReadyAsync()
