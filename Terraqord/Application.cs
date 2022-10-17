@@ -167,7 +167,7 @@ namespace Terraqord
 
             collection.AddSingleton<DiscordSocketConfig>(new DiscordSocketConfig()
             {
-                GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.GuildMembers,
+                GatewayIntents = GatewayIntents.All,
                 AlwaysDownloadUsers = true,
                 MessageCacheSize = 100,
                 FormatUsersInBidirectionalUnicode = false,
