@@ -144,7 +144,9 @@ namespace Terraqord
 
             if (!arg.Handled)
             {
-                if (string.IsNullOrEmpty(arg.RawText))
+                var stringify = arg.RawText.StripTags();
+
+                if (string.IsNullOrEmpty(stringify))
                     return;
 
                 string? avatarUrl = null;
@@ -156,7 +158,7 @@ namespace Terraqord
                 }
 
                 await _messageHook.SendMessageAsync(
-                    text: $"{arg.RawText}".StripTags(), 
+                    text: stringify, 
                     username: $"{player.Group.Prefix}{player.Name}".StripTags(),
                     avatarUrl: avatarUrl);
             }
