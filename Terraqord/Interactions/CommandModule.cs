@@ -31,7 +31,7 @@ namespace Terraqord.Interactions
         [SlashCommand("command", "Executes an ingame command.")]
         public async Task CommandAsync(string query, bool visible = false)
         {
-            await DeferAsync(visible);
+            await DeferAsync(!visible);
 
             var user = await UserEntity.GetAsync(Context.User.Id);
 
