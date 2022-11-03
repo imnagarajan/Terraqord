@@ -144,7 +144,7 @@ namespace Terraqord
 
             if (!arg.Handled)
             {
-                var stringify = arg.RawText.StripTags();
+                var stringify = arg.RawText.StripTags().Trim();
 
                 if (string.IsNullOrEmpty(stringify))
                     return;
