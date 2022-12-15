@@ -12,6 +12,7 @@ using TShockAPI;
 using Terraqord.Extensions;
 using Terraria;
 using Auxiliary.Configuration;
+using Auxiliary;
 
 namespace Terraqord
 {
@@ -152,7 +153,7 @@ namespace Terraqord
                 string? avatarUrl = null;
                 if (player.Account != null)
                 {
-                    var user = await TerraqordUser.GetAsync(player.Account.ID);
+                    var user = await IModel.GetAsync(GetRequest.Bson<TerraqordUser>(x => x.TShockId == player.Account.ID));
 
                     avatarUrl = user?.AuthorUrl ?? null;
                 }
