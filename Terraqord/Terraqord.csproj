@@ -14,7 +14,7 @@
 
   <ItemGroup>
     <Reference Include="Auxiliary">
-      <HintPath>..\..\Application\ServerPlugins\Auxiliary.dll</HintPath>
+      <HintPath>..\..\Auxiliary\Auxiliary\bin\Debug\net6.0\Auxiliary.dll</HintPath>
     </Reference>
     <Reference Include="ModFramework">
       <HintPath>..\..\Application\bin\ModFramework.dll</HintPath>

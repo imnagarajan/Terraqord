@@ -136,9 +136,9 @@ namespace Terraqord
             if (user.IsBot || user.IsWebhook)
                 return;
 
-            var member = await UserEntity.GetAsync(userMessage.Author.Id);
+            var member = await IModel.GetAsync(GetRequest.Bson<TerraqordUser>(x => x.DiscordId == userMessage.Author.Id));
 
-            if (member != null)
+            if (member is not null)
             {
                 var account = TShock.UserAccounts.GetUserAccountByID(member.TShockId);
                 var group = TShock.Groups.GetGroupByName(account.Group);

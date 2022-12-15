@@ -88,7 +88,7 @@ namespace Terraqord
 
                 var lb = new EmbedBuilder()
                     .WithTitle($"{player.Name} has left!")
-                    .AddField("IP:", player.IP.ToString())
+                    .AddField("IP:", $"_{player.IP}_")
                     .WithColor(Color.Red);
 
                 await _logHook.SendMessageAsync(
@@ -115,7 +115,7 @@ namespace Terraqord
 
                 var lb = new EmbedBuilder()
                     .WithTitle($"{player.Name} has joined!")
-                    .AddField("IP:", player.IP.ToString())
+                    .AddField("IP:", $"_{player.IP}_")
                     .WithColor(Color.Green);
 
                 await _logHook.SendMessageAsync(
@@ -130,7 +130,7 @@ namespace Terraqord
 
             var lb = new EmbedBuilder()
                 .WithTitle($"{player.Name} has executed a command!")
-                .AddField("Command:", arg.CommandText)
+                .AddField("Command:", $"{TShock.Config.Settings.CommandSpecifier}{arg.CommandText}")
                 .WithColor(Color.Blue);
 
             await _logHook.SendMessageAsync(
@@ -152,7 +152,7 @@ namespace Terraqord
                 string? avatarUrl = null;
                 if (player.Account != null)
                 {
-                    var user = await UserEntity.GetAsync(player.Account.ID);
+                    var user = await TerraqordUser.GetAsync(player.Account.ID);
 
                     avatarUrl = user?.AuthorUrl ?? null;
                 }

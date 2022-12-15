@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Auxiliary;
 using Terraqord.Entities;
 using Terraqord.Extensions;
 using Terraqord.Interactions.Models;
@@ -33,7 +29,7 @@ namespace Terraqord.Interactions
         {
             await DeferAsync(!visible);
 
-            var user = await UserEntity.GetAsync(Context.User.Id);
+            var user = await IModel.GetAsync(GetRequest.Bson<TerraqordUser>(x => x.DiscordId == Context.User.Id));
 
             if (user is null)
             {
@@ -110,7 +106,7 @@ namespace Terraqord.Interactions
                 return;
             }
 
-            var user = await UserEntity.GetAsync(account.ID);
+            var user = await IModel.GetAsync(GetRequest.Bson<TerraqordUser>(x => x.TShockId == account.ID));
 
             if (user is not null)
             {
@@ -131,7 +127,12 @@ namespace Terraqord.Interactions
             if (Context.User is not SocketGuildUser member)
                 return;
 
-            await UserEntity.CreateAsync(Context.User.Id, account.ID, member.GetAvatarUrl());
+            await IModel.CreateAsync(CreateRequest.Bson<TerraqordUser>(x =>
+            {
+                x.DiscordId = Context.User.Id;
+                x.TShockId = account.ID;
+                x.AuthorUrl = member.GetAvatarUrl();
+            }));
 
             await RespondAsync(
                 text: ":white_check_mark: **Successfully logged in.**",
@@ -141,7 +142,7 @@ namespace Terraqord.Interactions
         [SlashCommand("logout", "Logs out of your ingame account.")]
         public async Task LogoutAsync()
         {
-            var user = await UserEntity.GetAsync(Context.User.Id);
+            var user = await IModel.GetAsync(GetRequest.Bson<TerraqordUser>(x => x.DiscordId == Context.User.Id));
 
             if (user is not null)
             {
