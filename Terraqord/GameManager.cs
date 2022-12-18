@@ -24,6 +24,7 @@ namespace Terraqord
 
         private readonly DiscordWebhookClient _logHook;
         private readonly DiscordWebhookClient _messageHook;
+        private readonly DiscordWebhookClient _staffHook;
 
         public GameManager(DiscordSocketClient client)
         {
@@ -34,8 +35,9 @@ namespace Terraqord
 
             _client = client;
 
-            _messageHook = new DiscordWebhookClient(Configuration<TerraqordSettings>.Settings.ServerHook);
-            _logHook = new DiscordWebhookClient(Configuration<TerraqordSettings>.Settings.LoggingHook);
+            _messageHook = new(Configuration<TerraqordSettings>.Settings.ServerHook);
+            _staffHook = new(Configuration<TerraqordSettings>.Settings.StaffHook);
+            _logHook = new(Configuration<TerraqordSettings>.Settings.LoggingHook);
 
             Terraqord.ChatSent += ChatSent;
             Terraqord.CommandSent += CommandSent;
@@ -128,6 +130,31 @@ namespace Terraqord
         private async Task CommandSent(PlayerCommandEventArgs arg)
         {
             var player = arg.Player;
+
+            if (arg.CommandName is "login" or "password" or "user" or "register")
+                return;
+
+            if (arg.CommandName is "staffchat" or "sc" && !arg.Handled)
+            {
+                var stringify = arg.CommandText[arg.CommandName.Length..].StripTags().Trim();
+
+                if (!string.IsNullOrEmpty(stringify))
+                {
+
+                    string? avatarUrl = null;
+                    if (player.Account != null)
+                    {
+                        var user = await IModel.GetAsync(GetRequest.Bson<TerraqordUser>(x => x.TShockId == player.Account.ID));
+
+                        avatarUrl = user?.AuthorUrl ?? null;
+                    }
+
+                    await _staffHook.SendMessageAsync(
+                        text: stringify,
+                        username: $"{player.Group.Prefix}{player.Name}".StripTags(),
+                        avatarUrl: avatarUrl);
+                }
+            }
 
             var lb = new EmbedBuilder()
                 .WithTitle($"{player.Name} has executed a command!")

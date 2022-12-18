@@ -1,5 +1,6 @@
 ﻿using Auxiliary;
 using Auxiliary.Configuration;
+using Discord;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Driver;
 using System;
@@ -127,26 +128,50 @@ namespace Terraqord
             if (message is not SocketUserMessage userMessage)
                 return;
 
-            if (Configuration<TerraqordSettings>.Settings.Channel != userMessage.Channel.Id)
-                return;
+            if (userMessage.Channel.Id == Configuration<TerraqordSettings>.Settings.Channel)
+                await HandleDefaultAsync(userMessage);
 
-            if (userMessage.Author is not SocketGuildUser user)
+            else if (userMessage.Channel.Id == Configuration<TerraqordSettings>.Settings.StaffChannel)
+                await HandleStaffAsync(userMessage);
+        }
+
+        private async Task HandleDefaultAsync(SocketUserMessage message)
+        {
+            if (message.Author is not SocketGuildUser user)
                 return;
 
             if (user.IsBot || user.IsWebhook)
                 return;
 
-            var member = await IModel.GetAsync(GetRequest.Bson<TerraqordUser>(x => x.DiscordId == userMessage.Author.Id));
+            if (message.Content is null || message.CleanContent.Length <= 0)
+                return;
+
+            var member = await IModel.GetAsync(GetRequest.Bson<TerraqordUser>(x => x.DiscordId == message.Author.Id));
 
             if (member is not null)
             {
                 var account = TShock.UserAccounts.GetUserAccountByID(member.TShockId);
                 var group = TShock.Groups.GetGroupByName(account.Group);
 
-                TShock.Utils.Broadcast($"[c/28D2B9:Discord] ⇒ {group.Prefix}{user.DisplayName}: {userMessage.CleanContent}", group.R, group.G, group.B);
+                TShock.Utils.Broadcast($"[c/28D2B9:Discord] ⇒ {group.Prefix}{user.DisplayName}: {message.CleanContent}", group.R, group.G, group.B);
             }
             else
-                TShock.Utils.Broadcast($"[c/28D2B9:Discord] ⇒ {user.DisplayName}: {userMessage.CleanContent}", Microsoft.Xna.Framework.Color.LightGray);
+                TShock.Utils.Broadcast($"[c/28D2B9:Discord] ⇒ {user.DisplayName}: {message.CleanContent}", Microsoft.Xna.Framework.Color.LightGray);
+        }
+
+        private async Task HandleStaffAsync(SocketUserMessage message)
+        {
+            await Task.CompletedTask;
+
+            if (message.Author is not SocketGuildUser user)
+                return;
+
+            if (user.IsBot || user.IsWebhook)
+                return;
+
+            var cmd = $"/sc [Discord] ⇒ {user.DisplayName}: {message.CleanContent}";
+
+            Commands.HandleCommand(TSPlayer.Server, cmd);
         }
 
         private static IServiceProvider BuildServiceProvider()

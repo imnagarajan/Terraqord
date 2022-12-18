@@ -19,11 +19,17 @@ namespace Terraqord.Configuration
         [JsonPropertyName("log-webhook")]
         public string LoggingHook { get; set; } = string.Empty;
 
+        [JsonPropertyName("staff-webhook")]
+        public string StaffHook { get; set; } = string.Empty;
+
         [JsonPropertyName("server-ip")]
         public string JoinIp { get; set; } = string.Empty;
 
         [JsonPropertyName("listen-channel")]
         public ulong Channel { get; set; }
+
+        [JsonPropertyName("staff-listen-channel")]
+        public ulong StaffChannel { get; set; }
 
         [JsonPropertyName("register-commands")]
         public bool AllowRegistration { get; set; }
