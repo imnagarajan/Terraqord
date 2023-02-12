@@ -137,6 +137,9 @@ namespace Terraqord
 
         private async Task HandleDefaultAsync(SocketUserMessage message)
         {
+            if (message is null)
+                return;
+
             if (message.Author is not SocketGuildUser user)
                 return;
 
@@ -151,7 +154,11 @@ namespace Terraqord
             if (member is not null)
             {
                 var account = TShock.UserAccounts.GetUserAccountByID(member.TShockId);
+                if (account is null)
+                    return;
                 var group = TShock.Groups.GetGroupByName(account.Group);
+                if (group is null)
+                    return;
 
                 TShock.Utils.Broadcast($"[c/28D2B9:Discord] ⇒ {group.Prefix}{user.DisplayName}: {message.CleanContent}", group.R, group.G, group.B);
             }

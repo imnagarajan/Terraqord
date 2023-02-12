@@ -40,6 +40,13 @@ namespace Terraqord.Interactions
 
             var account = TShock.UserAccounts.GetUserAccountByID(user.TShockId);
 
+            if (account is null)
+            {
+                await FollowupAsync(
+                    text: ":x: **This account does not exist.**");
+                return;
+            }
+
             var group = TShock.Groups.GetGroupByName(account.Group);
 
             var param = query.ParseParameters();
