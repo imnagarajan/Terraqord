@@ -149,6 +149,9 @@ namespace Terraqord
             if (message.Content is null || message.CleanContent.Length <= 0)
                 return;
 
+            if (message.Content.StartsWith('.'))
+                return;
+
             var member = await IModel.GetAsync(GetRequest.Bson<TerraqordUser>(x => x.DiscordId == message.Author.Id));
 
             if (member is not null)
