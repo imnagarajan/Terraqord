@@ -43,7 +43,7 @@ namespace Terraqord.Interactions
             if (account is null)
             {
                 await FollowupAsync(
-                    text: ":x: **This account does not exist.**");
+                    text: ":x: **Your account does not exist. Please log out and log back in again.**");
                 return;
             }
 
@@ -156,13 +156,15 @@ namespace Terraqord.Interactions
                 await user.DeleteAsync();
 
                 await RespondAsync(
-                    text: ":white_check_mark: **Succesfully logged out.**");
+                    text: ":white_check_mark: **Succesfully logged out.**",
+                    ephemeral: true);
 
                 return;
             }
 
             await RespondAsync(
-                text: ":x: **You aren't logged in!**");
+                text: ":x: **You aren't logged in!**",
+                ephemeral: true);
         }
     }
 }
