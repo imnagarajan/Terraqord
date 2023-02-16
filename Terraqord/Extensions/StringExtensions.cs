@@ -5,7 +5,7 @@ using TShockAPI;
 
 namespace Terraqord.Extensions
 {
-    public static class StringUtilities
+    public static class StringExtensions
     {
         private class Tag
         {

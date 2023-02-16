@@ -12,6 +12,12 @@ namespace Terraqord.Configuration
         public BotInformation Bot { get; set; } = new();
 
         /// <summary>
+        ///     Server config.
+        /// </summary>
+        [JsonPropertyName("server")]
+        public ServerInformation Server { get; set; } = new();
+
+        /// <summary>
         ///     Webhook config.
         /// </summary>
         [JsonPropertyName("webhooks")]
@@ -49,6 +55,27 @@ namespace Terraqord.Configuration
         /// </summary>
         [JsonPropertyName("bot-token")]
         public string Token { get; set; } = string.Empty;
+    }
+
+    public class ServerInformation
+    {
+        /// <summary>
+        ///     The server IP.
+        /// </summary>
+        [JsonPropertyName("ip")]
+        public string ServerIp { get; set; } = string.Empty;
+
+        /// <summary>
+        ///     The server name.
+        /// </summary>
+        [JsonPropertyName("server-name")]
+        public string ServerName { get; set; } = string.Empty;
+
+        /// <summary>
+        ///     The bridge name.
+        /// </summary>
+        [JsonPropertyName("bridge-name")]
+        public string BridgeName { get; set; } = string.Empty;
     }
 
     public class WebhookInformation

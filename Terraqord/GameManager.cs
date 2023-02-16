@@ -5,6 +5,7 @@ using System.Timers;
 using Terraqord.Configuration;
 using Terraqord.Entities;
 using Terraqord.Extensions;
+using Terraqord.Webhooks;
 using Terraria;
 using TerrariaApi.Server;
 using TShockAPI;
@@ -20,16 +21,13 @@ namespace Terraqord
 
         private readonly DiscordSocketClient _client;
 
-        private readonly DiscordWebhookClient _loggingHook;
-        private readonly DiscordWebhookClient _mainHook;
-        private readonly DiscordWebhookClient _staffHook;
+        private readonly WebhookResolver _mainHook;
+        private readonly WebhookResolver _staffHook;
+        private readonly WebhookResolver _loggingHook;
 
         public GameManager(DiscordSocketClient client)
         {
             _joinedAt = new DateTime?[256];
-
-            for (int i = 0; i < _joinedAt.Length; i++)
-                _joinedAt[i] = null;
 
             _timer = new Timer(30000)
             {
@@ -56,29 +54,27 @@ namespace Terraqord
         }
 
         private async Task OnElapsedAsync(ElapsedEventArgs _)
-            => await _client.SetGameAsync($"on TBC ({TShock.Utils.GetActivePlayerCount()}/{TShock.Config.Settings.MaxSlots})");
+            => await _client.SetGameAsync($"on {Configuration<TerraqordSettings>.Settings.Server.ServerName} ({TShock.Utils.GetActivePlayerCount()}/{TShock.Config.Settings.MaxSlots})");
 
         private async Task ServerStarted()
         {
             var eb = new EmbedBuilder()
-                .WithTitle("Main started!")
+                .WithTitle($"{Configuration<TerraqordSettings>.Settings.Server.BridgeName} started!")
                 .AddField("Map:", $"`{Main.worldName}`")
                 .AddField("Max players:", $"`{TShock.Config.Settings.MaxSlots}`")
                 .AddField("Difficulty:", $"`{Enum.GetName(typeof(GameMode), GameMode.All)}`")
                 .WithColor(Color.Blue);
 
-            await _mainHook.SendMessageAsync(
-                embeds: new[] { eb.Build() });
+            await _mainHook.SendAsync(eb, Configuration<TerraqordSettings>.Settings.Server.BridgeName);
         }
 
         public async Task StartAsync()
         {
             var eb = new EmbedBuilder()
-                .WithTitle("Main starting!")
+                .WithTitle($"{Configuration<TerraqordSettings>.Settings.Server.BridgeName} starting!")
                 .WithColor(Color.Blue);
 
-            await _mainHook.SendMessageAsync(
-                embeds: new[] { eb.Build() });
+            await _mainHook.SendAsync(eb, Configuration<TerraqordSettings>.Settings.Server.BridgeName);
         }
 
         private async Task Leave(LeaveEventArgs arg)
@@ -86,29 +82,25 @@ namespace Terraqord
             if (!Configuration<TerraqordSettings>.Settings.Retention.SendLeaves)
                 return;
 
-            var player = TShock.Players[arg.Who];
+            if (!arg.Who.TryGetPlayer(out var player))
+                return;
 
-            if (player != null && player.Active && player.RealPlayer)
-            {
-                var span = DateTime.UtcNow - _joinedAt[arg.Who]!.Value;
+            var span = DateTime.UtcNow - _joinedAt[arg.Who]!.Value;
 
-                var eb = new EmbedBuilder()
-                    .WithTitle($"{player.Name} has left!")
-                    .AddField("Playtime:", $"`{span.ToReadable()}`")
-                    .AddField("Playercount:", $"`{TShock.Utils.GetActivePlayerCount() - 1}/{TShock.Config.Settings.MaxSlots}`")
-                    .WithColor(Color.Red);
+            var eb = new EmbedBuilder()
+                .WithTitle($"{player.Name} has left!")
+                .AddField("Playtime:", $"`{span.ToReadable()}`")
+                .AddField("Playercount:", $"`{TShock.Utils.GetActivePlayerCount() - 1}/{TShock.Config.Settings.MaxSlots}`")
+                .WithColor(Color.Red);
 
-                await _mainHook.SendMessageAsync(
-                    embeds: new[] { eb.Build() });
+            await _mainHook.SendAsync(eb, Configuration<TerraqordSettings>.Settings.Server.BridgeName);
 
-                var lb = new EmbedBuilder()
-                    .WithTitle($"{player.Name} has left!")
-                    .AddField("IP:", $"`{player.IP}`")
-                    .WithColor(Color.Red);
+            var lb = new EmbedBuilder()
+                .WithTitle($"{player.Name} has left!")
+                .AddField("IP:", $"`{player.IP}`")
+                .WithColor(Color.Red);
 
-                await _loggingHook.SendMessageAsync(
-                    embeds: new[] { lb.Build() });
-            }
+            await _loggingHook.SendAsync(lb);
         }
 
         private async Task Join(GreetPlayerEventArgs arg)
@@ -118,28 +110,22 @@ namespace Terraqord
 
             _joinedAt[arg.Who] = DateTime.UtcNow;
 
-            var player = TShock.Players[arg.Who];
+            if (!arg.Who.TryGetPlayer(out var player))
+                return;
+            
+            var eb = new EmbedBuilder()
+                .WithTitle($"{player.Name} has joined!")
+                .AddField("Playercount:", $"`{TShock.Utils.GetActivePlayerCount()}/{TShock.Config.Settings.MaxSlots}`")
+                .WithColor(Color.Green);
 
-            if (player != null && player.Active && player.RealPlayer)
-            {
-                var eb = new EmbedBuilder()
-                    .WithTitle($"{player.Name} has joined!")
-                    .AddField("Playercount:", $"`{TShock.Utils.GetActivePlayerCount()}/{TShock.Config.Settings.MaxSlots}`")
-                    .WithColor(Color.Green);
+            await _mainHook.SendAsync(eb, Configuration<TerraqordSettings>.Settings.Server.BridgeName);
 
-                await _mainHook.SendMessageAsync(
-                    username: "Main",
-                    embeds: new[] { eb.Build() });
+            var lb = new EmbedBuilder()
+                .WithTitle($"{player.Name} has joined!")
+                .AddField("IP:", $"`{player.IP}`")
+                .WithColor(Color.Green);
 
-                var lb = new EmbedBuilder()
-                    .WithTitle($"{player.Name} has joined!")
-                    .AddField("IP:", $"`{player.IP}`")
-                    .WithColor(Color.Green);
-
-                await _loggingHook.SendMessageAsync(
-                    username: "Main",
-                    embeds: new[] { lb.Build() });
-            }
+            await _loggingHook.SendAsync(lb);
         }
 
         private async Task CommandSent(PlayerCommandEventArgs arg)
@@ -151,46 +137,10 @@ namespace Terraqord
 
             if (arg.CommandName is "staffchat" or "sc" && !arg.Handled)
             {
-                if (arg.Player.Name != TSPlayer.Server.Name)
-                {
-                    var stringify = arg.CommandText[arg.CommandName.Length..].StripTags().Trim();
+                if (arg.Player.Name == TSPlayer.Server.Name)
+                    return;
 
-                    if (!string.IsNullOrEmpty(stringify))
-                    {
-
-                        string? avatarUrl = null;
-                        if (player.Account != null)
-                        {
-                            var user = await IModel.GetAsync(GetRequest.Bson<TerraqordUser>(x => x.TShockId == player.Account.ID));
-
-                            avatarUrl = user?.AuthorUrl ?? null;
-                        }
-
-                        await _staffHook.SendMessageAsync(
-                            text: stringify,
-                            username: $"{player.Group.Prefix}{player.Name}".StripTags(),
-                            avatarUrl: avatarUrl);
-                    }
-                }
-            }
-
-            var lb = new EmbedBuilder()
-                .WithTitle($"{player.Name} has executed a command!")
-                .AddField("Command:", $"/{arg.CommandText}")
-                .WithColor(Color.Blue);
-
-            await _loggingHook.SendMessageAsync(
-                username: "Main",
-                embeds: new[] { lb.Build() });
-        }
-
-        private async Task ChatSent(PlayerChatEventArgs arg)
-        {
-            var player = arg.Player;
-
-            if (!arg.Handled)
-            {
-                var stringify = arg.RawText.StripTags().Trim();
+                var stringify = arg.CommandText[arg.CommandName.Length..].StripTags().Trim();
 
                 if (string.IsNullOrEmpty(stringify))
                     return;
@@ -203,17 +153,44 @@ namespace Terraqord
                     avatarUrl = user?.AuthorUrl ?? null;
                 }
 
-                try
-                {
-                    await _mainHook.SendMessageAsync(
-                        text: stringify,
-                        username: $"{player.Group.Prefix}{player.Name}".StripTags(),
-                        avatarUrl: avatarUrl);
-                }
-                catch (TimeoutException)
-                {
-                    return;
-                }
+                await _staffHook.SendAsync(stringify, $"{player.Group.Prefix}{player.Name}".StripTags(), avatarUrl);
+            }
+
+            var lb = new EmbedBuilder()
+                .WithTitle($"{player.Name} has executed a command!")
+                .AddField("Command:", $"/{arg.CommandText}")
+                .WithColor(Color.Blue);
+
+            await _loggingHook.SendAsync(lb);
+        }
+
+        private async Task ChatSent(PlayerChatEventArgs arg)
+        {
+            var player = arg.Player;
+
+            if (arg.Handled)
+                return;
+
+            var stringify = arg.RawText.StripTags().Trim();
+
+            if (string.IsNullOrEmpty(stringify))
+                return;
+
+            string? avatarUrl = null;
+            if (player.Account != null)
+            {
+                var user = await IModel.GetAsync(GetRequest.Bson<TerraqordUser>(x => x.TShockId == player.Account.ID));
+
+                avatarUrl = user?.AuthorUrl ?? null;
+            }
+
+            try
+            {
+                await _mainHook.SendAsync(stringify, $"{player.Group.Prefix}{player.Name}".StripTags(), avatarUrl);
+            }
+            catch (TimeoutException)
+            {
+                return;
             }
         }
     }

@@ -3,6 +3,7 @@ using Auxiliary.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Terraqord.Configuration;
 using Terraqord.Entities;
+using Terraqord.Extensions;
 using TShockAPI;
 
 namespace Terraqord
@@ -122,59 +123,10 @@ namespace Terraqord
                 return;
 
             if (userMessage.Channel.Id == Configuration<TerraqordSettings>.Settings.Channels.Main)
-                await HandleDefaultAsync(userMessage);
+                await userMessage.HandleDefaultAsync();
 
             else if (userMessage.Channel.Id == Configuration<TerraqordSettings>.Settings.Channels.Staff)
-                await HandleStaffAsync(userMessage);
-        }
-
-        private async Task HandleDefaultAsync(SocketUserMessage message)
-        {
-            if (message is null)
-                return;
-
-            if (message.Author is not SocketGuildUser user)
-                return;
-
-            if (user.IsBot || user.IsWebhook)
-                return;
-
-            if (message.Content is null || message.CleanContent.Length <= 0)
-                return;
-
-            if (message.Content.StartsWith('.'))
-                return;
-
-            var member = await IModel.GetAsync(GetRequest.Bson<TerraqordUser>(x => x.DiscordId == message.Author.Id));
-
-            if (member is not null)
-            {
-                var account = TShock.UserAccounts.GetUserAccountByID(member.TShockId);
-                if (account is null)
-                    return;
-                var group = TShock.Groups.GetGroupByName(account.Group);
-                if (group is null)
-                    return;
-
-                TShock.Utils.Broadcast($"[c/28D2B9:Discord] ⇒ {group.Prefix}{user.DisplayName}: {message.CleanContent}", group.R, group.G, group.B);
-            }
-            else
-                TShock.Utils.Broadcast($"[c/28D2B9:Discord] ⇒ {user.DisplayName}: {message.CleanContent}", Microsoft.Xna.Framework.Color.LightGray);
-        }
-
-        private async Task HandleStaffAsync(SocketUserMessage message)
-        {
-            await Task.CompletedTask;
-
-            if (message.Author is not SocketGuildUser user)
-                return;
-
-            if (user.IsBot || user.IsWebhook)
-                return;
-
-            var cmd = $"/sc [Discord] ⇒ {user.DisplayName}: {message.CleanContent}";
-
-            Commands.HandleCommand(TSPlayer.Server, cmd);
+                await userMessage.HandleStaffAsync();
         }
 
         private static IServiceProvider BuildServiceProvider()
