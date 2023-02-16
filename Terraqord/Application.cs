@@ -181,7 +181,7 @@ namespace Terraqord
         {
             var collection = new ServiceCollection();
 
-            collection.AddSingleton<DiscordSocketConfig>(new DiscordSocketConfig()
+            collection.AddSingleton(new DiscordSocketConfig()
             {
                 GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.GuildMembers,
                 AlwaysDownloadUsers = true,
@@ -192,7 +192,7 @@ namespace Terraqord
             });
             collection.AddSingleton<DiscordSocketClient>();
 
-            collection.AddSingleton<InteractionServiceConfig>(new InteractionServiceConfig()
+            collection.AddSingleton(new InteractionServiceConfig()
             {
                 UseCompiledLambda = true,
                 DefaultRunMode = RunMode.Async,

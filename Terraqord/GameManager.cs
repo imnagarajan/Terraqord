@@ -1,6 +1,7 @@
 ﻿using Auxiliary;
 using Auxiliary.Configuration;
 using Discord.Webhook;
+using System.Timers;
 using Terraqord.Configuration;
 using Terraqord.Entities;
 using Terraqord.Extensions;
@@ -8,17 +9,19 @@ using Terraria;
 using TerrariaApi.Server;
 using TShockAPI;
 using TShockAPI.Hooks;
+using Timer = System.Timers.Timer;
 
 namespace Terraqord
 {
     public class GameManager
     {
         private readonly DateTime?[] _joinedAt;
+        private readonly Timer _timer;
 
         private readonly DiscordSocketClient _client;
 
-        private readonly DiscordWebhookClient _logHook;
-        private readonly DiscordWebhookClient _messageHook;
+        private readonly DiscordWebhookClient _loggingHook;
+        private readonly DiscordWebhookClient _mainHook;
         private readonly DiscordWebhookClient _staffHook;
 
         public GameManager(DiscordSocketClient client)
@@ -28,11 +31,20 @@ namespace Terraqord
             for (int i = 0; i < _joinedAt.Length; i++)
                 _joinedAt[i] = null;
 
+            _timer = new Timer(30000)
+            {
+                Enabled = true,
+                AutoReset = true
+            };
+            _timer.Elapsed += async (_, x) 
+                => await OnElapsedAsync(x);
+            _timer.Start();
+
             _client = client;
 
-            _messageHook = new(Configuration<TerraqordSettings>.Settings.Webhooks.Main);
+            _mainHook = new(Configuration<TerraqordSettings>.Settings.Webhooks.Main);
             _staffHook = new(Configuration<TerraqordSettings>.Settings.Webhooks.Staff);
-            _logHook = new(Configuration<TerraqordSettings>.Settings.Webhooks.Logging);
+            _loggingHook = new(Configuration<TerraqordSettings>.Settings.Webhooks.Logging);
 
             Terraqord.ChatSent += ChatSent;
             Terraqord.CommandSent += CommandSent;
@@ -43,6 +55,9 @@ namespace Terraqord
             Terraqord.ServerStarted += ServerStarted;
         }
 
+        private async Task OnElapsedAsync(ElapsedEventArgs _)
+            => await _client.SetGameAsync($"on TBC ({TShock.Utils.GetActivePlayerCount()}/{TShock.Config.Settings.MaxSlots})");
+
         private async Task ServerStarted()
         {
             var eb = new EmbedBuilder()
@@ -52,7 +67,7 @@ namespace Terraqord
                 .AddField("Difficulty:", $"`{Enum.GetName(typeof(GameMode), GameMode.All)}`")
                 .WithColor(Color.Blue);
 
-            await _messageHook.SendMessageAsync(
+            await _mainHook.SendMessageAsync(
                 embeds: new[] { eb.Build() });
         }
 
@@ -62,7 +77,7 @@ namespace Terraqord
                 .WithTitle("Main starting!")
                 .WithColor(Color.Blue);
 
-            await _messageHook.SendMessageAsync(
+            await _mainHook.SendMessageAsync(
                 embeds: new[] { eb.Build() });
         }
 
@@ -83,7 +98,7 @@ namespace Terraqord
                     .AddField("Playercount:", $"`{TShock.Utils.GetActivePlayerCount() - 1}/{TShock.Config.Settings.MaxSlots}`")
                     .WithColor(Color.Red);
 
-                await _messageHook.SendMessageAsync(
+                await _mainHook.SendMessageAsync(
                     embeds: new[] { eb.Build() });
 
                 var lb = new EmbedBuilder()
@@ -91,7 +106,7 @@ namespace Terraqord
                     .AddField("IP:", $"`{player.IP}`")
                     .WithColor(Color.Red);
 
-                await _logHook.SendMessageAsync(
+                await _loggingHook.SendMessageAsync(
                     embeds: new[] { lb.Build() });
             }
         }
@@ -112,7 +127,7 @@ namespace Terraqord
                     .AddField("Playercount:", $"`{TShock.Utils.GetActivePlayerCount()}/{TShock.Config.Settings.MaxSlots}`")
                     .WithColor(Color.Green);
 
-                await _messageHook.SendMessageAsync(
+                await _mainHook.SendMessageAsync(
                     username: "Main",
                     embeds: new[] { eb.Build() });
 
@@ -121,7 +136,7 @@ namespace Terraqord
                     .AddField("IP:", $"`{player.IP}`")
                     .WithColor(Color.Green);
 
-                await _logHook.SendMessageAsync(
+                await _loggingHook.SendMessageAsync(
                     username: "Main",
                     embeds: new[] { lb.Build() });
             }
@@ -164,7 +179,7 @@ namespace Terraqord
                 .AddField("Command:", $"/{arg.CommandText}")
                 .WithColor(Color.Blue);
 
-            await _logHook.SendMessageAsync(
+            await _loggingHook.SendMessageAsync(
                 username: "Main",
                 embeds: new[] { lb.Build() });
         }
@@ -190,7 +205,7 @@ namespace Terraqord
 
                 try
                 {
-                    await _messageHook.SendMessageAsync(
+                    await _mainHook.SendMessageAsync(
                         text: stringify,
                         username: $"{player.Group.Prefix}{player.Name}".StripTags(),
                         avatarUrl: avatarUrl);
