@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Terraqord.Interactions.Models
+﻿namespace Terraqord.Interactions.Models
 {
-    
+
     public class LoginModel : IModal
     {
         public string Title

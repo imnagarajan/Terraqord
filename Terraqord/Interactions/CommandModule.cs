@@ -67,8 +67,7 @@ namespace Terraqord.Interactions
                 Group = group
             };
 
-            if (Main.rand == null)
-                Main.rand = new UnifiedRandom();
+            Main.rand ??= new UnifiedRandom();
 
             foreach (var command in commands)
             {

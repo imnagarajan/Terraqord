@@ -1,37 +1,119 @@
 ﻿using Auxiliary.Configuration;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 
 namespace Terraqord.Configuration
 {
     public class TerraqordSettings : ISettings
     {
-        [JsonPropertyName("bot-token")]
-        public string BotToken { get; set; } = string.Empty;
+        /// <summary>
+        ///     Bot config.
+        /// </summary>
+        [JsonPropertyName("bot")]
+        public BotInformation Bot { get; set; } = new();
 
-        [JsonPropertyName("chat-webhook")]
-        public string ServerHook { get; set; } = string.Empty;
+        /// <summary>
+        ///     Webhook config.
+        /// </summary>
+        [JsonPropertyName("webhooks")]
+        public WebhookInformation Webhooks { get; set; } = new();
 
-        [JsonPropertyName("log-webhook")]
-        public string LoggingHook { get; set; } = string.Empty;
+        /// <summary>
+        ///     Main config.
+        /// </summary>
+        [JsonPropertyName("channels")]
+        public ChannelInformation Channels { get; set; } = new();
 
-        [JsonPropertyName("staff-webhook")]
-        public string StaffHook { get; set; } = string.Empty;
+        /// <summary>
+        ///     Join/Leave config.
+        /// </summary>
+        [JsonPropertyName("retention")]
+        public RetentionInformation Retention { get; set; } = new();
 
-        [JsonPropertyName("server-ip")]
-        public string JoinIp { get; set; } = string.Empty;
+        /// <summary>
+        ///     Public api config.
+        /// </summary>
+        [JsonPropertyName("api")]
+        public ApiInformation Api { get; set; } = new();
+    }
 
-        [JsonPropertyName("listen-channel")]
-        public ulong Channel { get; set; }
-
-        [JsonPropertyName("staff-listen-channel")]
-        public ulong StaffChannel { get; set; }
-
+    public class BotInformation
+    {
+        /// <summary>
+        ///     If the bot should register commands.
+        /// </summary>
         [JsonPropertyName("register-commands")]
-        public bool AllowRegistration { get; set; }
+        public bool AllowRegistration { get; set; } = false;
+
+        /// <summary>
+        ///     The bot token.
+        /// </summary>
+        [JsonPropertyName("bot-token")]
+        public string Token { get; set; } = string.Empty;
+    }
+
+    public class WebhookInformation
+    {
+        /// <summary>
+        ///     Main channel webhook.
+        /// </summary>
+        [JsonPropertyName("main")]
+        public string Main { get; set; } = string.Empty;
+
+        /// <summary>
+        ///     Logging webhook.
+        /// </summary>
+        [JsonPropertyName("logging")]
+        public string Logging { get; set; } = string.Empty;
+
+        /// <summary>
+        ///     Staff webhook.
+        /// </summary>
+        [JsonPropertyName("staff")]
+        public string Staff { get; set; } = string.Empty;
+    }
+
+    public class ChannelInformation
+    {
+        /// <summary>
+        ///     Main channel.
+        /// </summary>
+        [JsonPropertyName("main")]
+        public ulong Main { get; set; }
+
+        /// <summary>
+        ///     Staff channel.
+        /// </summary>
+        [JsonPropertyName("staff")]
+        public ulong Staff { get; set; }
+    }
+
+    public class RetentionInformation
+    {
+        /// <summary>
+        ///     If leaves should be sent.
+        /// </summary>
+        [JsonPropertyName("send-leave")]
+        public bool SendLeaves { get; set; } = true;
+
+        /// <summary>
+        ///     If joins should be sent.
+        /// </summary>
+        [JsonPropertyName("send-join")]
+        public bool SendJoins { get; set; } = true;
+    }
+
+    public class ApiInformation
+    {
+        /// <summary>
+        ///     The api port.
+        /// </summary>
+        [JsonPropertyName("port")]
+        public int Port { get; set; }
+
+        /// <summary>
+        ///     The api IP.
+        /// </summary>
+        [JsonPropertyName("ip")]
+        public string Ip { get; set; } = "localhost";
     }
 }

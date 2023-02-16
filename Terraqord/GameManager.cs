@@ -1,18 +1,13 @@
-﻿using Discord.Webhook;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Auxiliary;
+using Auxiliary.Configuration;
+using Discord.Webhook;
 using Terraqord.Configuration;
 using Terraqord.Entities;
-using TerrariaApi.Server;
-using TShockAPI.Hooks;
-using TShockAPI;
 using Terraqord.Extensions;
 using Terraria;
-using Auxiliary.Configuration;
-using Auxiliary;
+using TerrariaApi.Server;
+using TShockAPI;
+using TShockAPI.Hooks;
 
 namespace Terraqord
 {
@@ -35,9 +30,9 @@ namespace Terraqord
 
             _client = client;
 
-            _messageHook = new(Configuration<TerraqordSettings>.Settings.ServerHook);
-            _staffHook = new(Configuration<TerraqordSettings>.Settings.StaffHook);
-            _logHook = new(Configuration<TerraqordSettings>.Settings.LoggingHook);
+            _messageHook = new(Configuration<TerraqordSettings>.Settings.Webhooks.Main);
+            _staffHook = new(Configuration<TerraqordSettings>.Settings.Webhooks.Staff);
+            _logHook = new(Configuration<TerraqordSettings>.Settings.Webhooks.Logging);
 
             Terraqord.ChatSent += ChatSent;
             Terraqord.CommandSent += CommandSent;
@@ -51,11 +46,10 @@ namespace Terraqord
         private async Task ServerStarted()
         {
             var eb = new EmbedBuilder()
-                .WithTitle("Server started!")
+                .WithTitle("Main started!")
                 .AddField("Map:", $"`{Main.worldName}`")
                 .AddField("Max players:", $"`{TShock.Config.Settings.MaxSlots}`")
                 .AddField("Difficulty:", $"`{Enum.GetName(typeof(GameMode), GameMode.All)}`")
-                .WithFooter($"Join on: {Configuration<TerraqordSettings>.Settings.JoinIp}")
                 .WithColor(Color.Blue);
 
             await _messageHook.SendMessageAsync(
@@ -65,7 +59,7 @@ namespace Terraqord
         public async Task StartAsync()
         {
             var eb = new EmbedBuilder()
-                .WithTitle("Server starting!")
+                .WithTitle("Main starting!")
                 .WithColor(Color.Blue);
 
             await _messageHook.SendMessageAsync(
@@ -74,6 +68,9 @@ namespace Terraqord
 
         private async Task Leave(LeaveEventArgs arg)
         {
+            if (!Configuration<TerraqordSettings>.Settings.Retention.SendLeaves)
+                return;
+
             var player = TShock.Players[arg.Who];
 
             if (player != null && player.Active && player.RealPlayer)
@@ -101,6 +98,9 @@ namespace Terraqord
 
         private async Task Join(GreetPlayerEventArgs arg)
         {
+            if (!Configuration<TerraqordSettings>.Settings.Retention.SendJoins)
+                return;
+
             _joinedAt[arg.Who] = DateTime.UtcNow;
 
             var player = TShock.Players[arg.Who];
@@ -113,7 +113,7 @@ namespace Terraqord
                     .WithColor(Color.Green);
 
                 await _messageHook.SendMessageAsync(
-                    username: "Server",
+                    username: "Main",
                     embeds: new[] { eb.Build() });
 
                 var lb = new EmbedBuilder()
@@ -122,7 +122,7 @@ namespace Terraqord
                     .WithColor(Color.Green);
 
                 await _logHook.SendMessageAsync(
-                    username: "Server",
+                    username: "Main",
                     embeds: new[] { lb.Build() });
             }
         }
@@ -165,7 +165,7 @@ namespace Terraqord
                 .WithColor(Color.Blue);
 
             await _logHook.SendMessageAsync(
-                username: "Server",
+                username: "Main",
                 embeds: new[] { lb.Build() });
         }
 

@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using Terraria;
 using TShockAPI;
 
@@ -34,7 +30,7 @@ namespace Terraqord.Extensions
 
             public string Text { get; }
 
-            public Tag(Match match) 
+            public Tag(Match match)
                 : this(match.Groups["tag"].Value, match.Groups["options"].Value, match.Groups["text"].Value)
             {
                 Raw = match.Value;
@@ -86,7 +82,7 @@ namespace Terraqord.Extensions
                 }
             }
 
-            public override string ToString() 
+            public override string ToString()
                 => Raw;
         }
 

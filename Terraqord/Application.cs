@@ -1,13 +1,6 @@
 ﻿using Auxiliary;
 using Auxiliary.Configuration;
-using Discord;
 using Microsoft.Extensions.DependencyInjection;
-using MongoDB.Driver;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Terraqord.Configuration;
 using Terraqord.Entities;
 using TShockAPI;
@@ -24,7 +17,7 @@ namespace Terraqord
 
         public Application()
         {
-            _provider = BuildServiceProvider(); 
+            _provider = BuildServiceProvider();
             _client = _provider.GetRequiredService<DiscordSocketClient>();
             _service = _provider.GetRequiredService<InteractionService>();
         }
@@ -42,7 +35,7 @@ namespace Terraqord
             var gameClient = _provider.GetRequiredService<GameManager>()
                 .StartAsync();
 
-            await _client.LoginAsync(TokenType.Bot, Configuration<TerraqordSettings>.Settings.BotToken);
+            await _client.LoginAsync(TokenType.Bot, Configuration<TerraqordSettings>.Settings.Bot.Token);
 
             _client.Ready += ReadyAsync;
             _client.Log += LogAsync;
@@ -65,11 +58,11 @@ namespace Terraqord
             if (!_ready)
                 _ready = true;
 
-            if (Configuration<TerraqordSettings>.Settings.AllowRegistration)
+            if (Configuration<TerraqordSettings>.Settings.Bot.AllowRegistration)
                 await _service.RegisterCommandsGloballyAsync();
         }
 
-        
+
         private readonly object _lock = new();
 
         private async Task LogAsync(LogMessage message)
@@ -128,10 +121,10 @@ namespace Terraqord
             if (message is not SocketUserMessage userMessage)
                 return;
 
-            if (userMessage.Channel.Id == Configuration<TerraqordSettings>.Settings.Channel)
+            if (userMessage.Channel.Id == Configuration<TerraqordSettings>.Settings.Channels.Main)
                 await HandleDefaultAsync(userMessage);
 
-            else if (userMessage.Channel.Id == Configuration<TerraqordSettings>.Settings.StaffChannel)
+            else if (userMessage.Channel.Id == Configuration<TerraqordSettings>.Settings.Channels.Staff)
                 await HandleStaffAsync(userMessage);
         }
 

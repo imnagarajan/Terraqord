@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TShockAPI;
+﻿using TShockAPI;
 
 namespace Terraqord
 {
@@ -13,8 +8,6 @@ namespace Terraqord
 
         public ConsoleUser(string name) : base(name)
             => _output = new List<string>();
-
-        public void Dispose() { }
 
         public override void SendErrorMessage(string msg)
             => _output.Add(msg);
@@ -38,5 +31,7 @@ namespace Terraqord
         {
             return _output;
         }
+
+        void IDisposable.Dispose() { }
     }
 }

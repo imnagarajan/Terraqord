@@ -42,7 +42,7 @@ namespace Terraqord.Entities
 
         public void Dispose()
         {
-            
+
         }
     }
 }
