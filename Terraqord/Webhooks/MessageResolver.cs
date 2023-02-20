@@ -10,9 +10,9 @@ namespace Terraqord.Webhooks
     /// <summary>
     ///     Represents a webhook resolver that can handle messages even when the hooks are not configured.
     /// </summary>
-    public class WebhookResolver
+    public class MessageResolver
     {
-        private readonly DiscordWebhookClient? _client;
+        private readonly IMessageChannel _channel = null!;
 
         public bool IsActive { get; }
 
@@ -20,12 +20,14 @@ namespace Terraqord.Webhooks
         ///     Creates a new webhook resolver that can handle messages even when the hooks are not configured.
         /// </summary>
         /// <param name="clientSecret"></param>
-        public WebhookResolver(string? clientSecret)
+        public MessageResolver(DiscordSocketClient client, ulong channelId)
         {
-            IsActive = !string.IsNullOrEmpty(clientSecret);
+            var channel = client.GetChannel(channelId);
 
-            if (IsActive)
-                _client = new(clientSecret);
+            if (channel is IMessageChannel messageChannel)
+                _channel = messageChannel;
+
+            IsActive = channel is not null;
         }
 
         public async Task SendAsync(EmbedBuilder? embed)
@@ -40,7 +42,7 @@ namespace Terraqord.Webhooks
         public async Task SendAsync(string? text, EmbedBuilder? embed, string? username, string? avatarUrl)
         {
             if (IsActive)
-                await _client!.SendMessageAsync(
+                await _channel!.SendMessageAsync(
                     text: text,
                     embeds: embed is not null 
                         ? new[] { embed.Build() } 

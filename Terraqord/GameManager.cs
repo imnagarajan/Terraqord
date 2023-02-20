@@ -21,9 +21,9 @@ namespace Terraqord
 
         private readonly DiscordSocketClient _client;
 
-        private readonly WebhookResolver _mainHook;
-        private readonly WebhookResolver _staffHook;
-        private readonly WebhookResolver _loggingHook;
+        private readonly MessageResolver _mainHook;
+        private readonly MessageResolver _staffHook;
+        private readonly MessageResolver _loggingHook;
 
         public GameManager(DiscordSocketClient client)
         {
@@ -40,9 +40,9 @@ namespace Terraqord
 
             _client = client;
 
-            _mainHook = new(Configuration<TerraqordSettings>.Settings.Webhooks.Main);
-            _staffHook = new(Configuration<TerraqordSettings>.Settings.Webhooks.Staff);
-            _loggingHook = new(Configuration<TerraqordSettings>.Settings.Webhooks.Logging);
+            _mainHook = new(_client, Configuration<TerraqordSettings>.Settings.Channels.Main);
+            _staffHook = new(_client, Configuration<TerraqordSettings>.Settings.Channels.Staff);
+            _loggingHook = new(_client, Configuration<TerraqordSettings>.Settings.Channels.Logging);
 
             Terraqord.ChatSent += ChatSent;
             Terraqord.CommandSent += CommandSent;

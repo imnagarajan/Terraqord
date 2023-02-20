@@ -112,6 +112,12 @@ namespace Terraqord.Configuration
         /// </summary>
         [JsonPropertyName("staff")]
         public ulong Staff { get; set; }
+
+        /// <summary>
+        ///     Logging channel.
+        /// </summary>
+        [JsonPropertyName("logging")]
+        public ulong Logging { get; set; }
     }
 
     public class RetentionInformation
