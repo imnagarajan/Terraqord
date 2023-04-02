@@ -49,7 +49,7 @@ namespace Terraqord.Webhooks
                         ? new[] { embed.Build() } 
                         : null,
                     username: username,
-                    avatarUrl: avatarUrl);
+                    avatarUrl: avatarUrl;
         }
     }
 }
