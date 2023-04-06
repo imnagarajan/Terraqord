@@ -48,8 +48,8 @@ namespace Terraqord.Webhooks
                     embeds: embed is not null 
                         ? new[] { embed.Build() } 
                         : null,
-                    username: username,
-                    avatarUrl: avatarUrl;
+                username: username,
+                avatarUrl: avatarUrl);
         }
     }
 }
